@@ -1,12 +1,15 @@
 #!/usr/bin/python3
+
 """
-class Place
+    Defines a class Place.
 """
+
 from models.base_model import BaseModel
 
 
 class Place(BaseModel):
-    """ class that inherits from BaseModel """
+    """Place class that inherits from BaseModel"""
+
     city_id = ""
     user_id = ""
     name = ""

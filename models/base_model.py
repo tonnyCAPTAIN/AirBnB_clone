@@ -1,52 +1,59 @@
 #!/usr/bin/python3
+
 """
-    Contains the Base Model module
+    Defines a class BaseModel.
 """
-import models
-import uuid
+
 from datetime import datetime
+from uuid import uuid4
+import models
 
 
-class BaseModel():
-    """
-        Defines the base model class of an instance
-    """
+class BaseModel:
+    """BaseModel class that defines common attrs/methods
+    for other class"""
+
     def __init__(self, *args, **kwargs):
-        """
-            Initialization attributes
-        """
-        if kwargs:
-            for key, value in kwargs.items():
-                if key == "created_at" or key == "updated_at":
-                    value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f")
-                if key == "__class__":
-                    continue
-                setattr(self, key, value)
+        """Initialize a new BaseModel"""
 
-        else:
-            self.id = str(uuid.uuid4())
+        if not kwargs:
+            self.id = str(uuid4())
             self.created_at = datetime.now()
             self.updated_at = datetime.now()
             models.storage.new(self)
+        else:
+            for key, val in kwargs.items():
+                if key != '__class__':
+                    if key == "created_at" or key == "updated_at":
+                        setattr(self, key, datetime.strptime(
+                            val, '%Y-%m-%dT%H:%M:%S.%f'))
+                    else:
+                        setattr(self, key, val)
 
     def __str__(self):
-        cls_name = self.__class__.__name__
-        return ('[{}] ({}) {}'.format(cls_name, self.id, self.__dict__))
+        """Return a string representation of the class"""
+
+        return "[{:s}] ({:s}) {:s}".format(
+            self.__class__.__name__,
+            self.id,
+            str(self.__dict__)
+        )
 
     def save(self):
+        """Update the date field"""
+
         self.updated_at = datetime.now()
         models.storage.save()
 
     def to_dict(self):
-        """
-            Returns an updated dictionary containing all keys/values
-            of __dict__ of the instance with a __class__ entry and
-            iso-formatted datetime
-        """
-        n_dict = self.__dict__.copy()
-        n_dict.update({"__class__": str(self.__class__.__name__)})
-        n_dict["created_at"] = self.created_at.isoformat()
-        n_dict["updated_at"] = self.updated_at.isoformat()
+        """Return a dictionary representation of the instance"""
 
-        return n_dict
-    
+        rep = {
+            "__class__": self.__class__.__name__,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat()
+        }
+
+        dict_copy = self.__dict__.copy()
+        dict_copy.update(rep)
+        return dict_copy
