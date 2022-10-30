@@ -1,57 +1,49 @@
 #!/usr/bin/python3
 """
-class file storage
+    The file storage module
 """
 import json
-import os.path
 from models.base_model import BaseModel
-from models.user import User
-from models.state import State
-from models.city import City
-from models.amenity import Amenity
-from models.place import Place
-from models.review import Review
 
 
-class FileStorage:
+class FileStorage():
     """
-    inner class file storage
+        This module handles file storage
     """
-    __file_path = "file.json"
+    __file_path = 'file.json'
     __objects = {}
 
     def all(self):
         """
-        methon all of file storage
+            Returns the "__objects" dictionary
         """
-        return FileStorage.__objects
+        return self.__objects
 
     def new(self, obj):
         """
-        method new of file storage
+            Sets in "__objects" the "obj" with key "<obj class_name>.id"
         """
-        FileStorage.__objects[obj.__class__.__name__ + "." + obj.id] = obj
+        key = "{}.{}".format(obj.__class__.__name__, obj.id)
+        self.__objects[key] = obj
 
     def save(self):
         """
-        method save of file storage
+            Serialize "__objects" and save to json file (path: __file_path)
         """
-        first_dict = {}
-        for key, val in FileStorage.__objects.items():
-            if val:
-                first_dict[key] = val.to_dict()
-        with open(FileStorage.__file_path, 'w', encoding='utf-8') as f:
-            json.dump(first_dict, f)
+        obj_dict = {}
+
+        for key, value in self.__objects.items():
+            obj_dict[key] = value.to_dict()
+        with open(self.__file_path, 'w') as f:
+            json.dump(obj_dict, f)
 
     def reload(self):
         """
-        method reload of class reload
+            Deserialize the json file to "__objects" only if
+            "__file_path" exists. Otherwise, do nothing
         """
-        my_dict = {'BaseModel': BaseModel, 'User': User, 'Place': Place,
-                   'State': State, 'City': City, 'Amenity': Amenity,
-                   'Review': Review}
-        if os.path.isfile(FileStorage.__file_path):
-            with open(FileStorage.__file_path, 'r', encoding='utf-8') as q:
-                other_dict = json.loads(q.read())
-                for key, val in other_dict.items():
-                    self.new(my_dict[val['__class__']](**val))
+        try:
+            with open(self.__file_path, 'r') as f:
+                dict_obj = json.load(f)
+        except FileNotFoundError:
+            pass
